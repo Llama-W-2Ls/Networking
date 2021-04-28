@@ -1,0 +1,114 @@
+using System;
+using Networking.TCP;
+
+namespace Chat_App
+{
+    class Program
+    {
+        const int PortNo = 1234;
+
+        static void Main()
+        {
+            UIPrompt();
+            Console.ReadKey();
+        }
+
+        static void UIPrompt()
+        {
+            Console.WriteLine("S to start server, C to connect as client");
+
+            switch (Console.ReadKey().KeyChar)
+            {
+                case 'S':
+                    StartServer();
+                    break;
+                case 'C':
+                    JoinAsClient();
+                    break;
+                default:
+                    Console.WriteLine("Incorrect char");
+                    UIPrompt();
+                    break;
+            }
+        }
+
+        static void StartServer()
+        {
+            var server = new Server(PortNo);
+            server.AssignEvents(new ServerMethods(server));
+
+            server.Start();
+        }
+
+        static void JoinAsClient()
+        {
+            Console.Write("Enter IP: ");
+            string ip = Console.ReadLine();
+
+            var client = new Client();
+            client.AssignEvents(new ClientMethods(client));
+
+            client.ConnectTo(ip, PortNo);
+        }
+    }
+
+    class ClientMethods : IClient
+    {
+        Client client;
+
+        public ClientMethods(Client _client)
+        {
+            client = _client;
+        }
+
+        public void OnDataReceived(string data)
+        {
+            Console.WriteLine(data);
+        }
+
+        public void OnDisconnected()
+        {
+            Console.WriteLine("Disconnected");
+        }
+
+        public void OnFailedConnection()
+        {
+            Console.WriteLine("Failed to connect");
+        }
+
+        public void OnSuccessfulConnection()
+        {
+            Console.WriteLine("Connected");
+        }
+    }
+
+    class ServerMethods : IServer
+    {
+        Server server;
+
+        public ServerMethods(Server _server)
+        {
+            server = _server;
+        }
+
+        public void OnClientConnected()
+        {
+            Console.WriteLine("Client connected");
+        }
+
+        public void OnServerClosed()
+        {
+            Console.WriteLine("Server closed");
+        }
+
+        public void OnServerFilled()
+        {
+            Console.WriteLine("Server is full");
+        }
+
+        public void OnServerStarted()
+        {
+            Console.WriteLine("Server started at: " + server.IP);
+        }
+    }
+}
